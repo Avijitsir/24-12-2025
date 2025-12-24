@@ -10,6 +10,7 @@ const questionsSource = [
 ];
 
 // --- Firebase Config ---
+// আপনার ফায়ারবেস কনফিগারেশন ঠিক আছে, এটি পরিবর্তন করার দরকার নেই
 const firebaseConfig = {
     apiKey: "AIzaSyDwGzTPmFg-gjoYtNWNJM47p22NfBugYFA",
     authDomain: "mock-test-1eea6.firebaseapp.com",
@@ -64,7 +65,6 @@ function initQuestions(sourceData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Get Quiz ID
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('id');
 
@@ -81,7 +81,6 @@ function loadQuizFromFirebase(quizId) {
         const data = snapshot.val();
         
         if (data && data.questions) {
-            // Process questions from Admin format
             const processedQuestions = data.questions.map(q => {
                 let correctIdx = q.options.indexOf(q.answer);
                 if (correctIdx === -1) correctIdx = 0; 
@@ -96,7 +95,6 @@ function loadQuizFromFirebase(quizId) {
 
             initQuestions(processedQuestions);
             
-            // Set Title & Time
             if(data.title) {
                 document.getElementById('instTitle').innerText = data.title + " - Instructions";
             }
@@ -104,7 +102,6 @@ function loadQuizFromFirebase(quizId) {
                 timeLeft = parseInt(data.duration) * 60;
             }
 
-            // Setup UI
             status = new Array(questions.length).fill(0); 
             userAnswers = new Array(questions.length).fill(null); 
             updateInstructions('en');
@@ -115,30 +112,47 @@ function loadQuizFromFirebase(quizId) {
     });
 }
 
-// --- Instructions ---
+// --- Instructions (Updated with Full Details) ---
 const translations = {
     en: {
         title: "Instructions",
         choose: "Language: ",
         content: `
-            <p><strong>Please read carefully:</strong></p>
-            <p>1. Total duration is set by Admin.</p>
-            <p>2. +1 for Correct, -0.33 for Wrong.</p>
-            <p>3. Click options to answer.</p>
+            <h3 style="margin-top:0;">Please read the following instructions carefully:</h3>
+            <p>1. The examination will comprise of Objective Type Multiple Choice Questions (MCQs).</p>
+            <p>2. Each question has 4 options, out of which only one is correct.</p>
+            <p>3. <strong>Marks:</strong> Each correct answer carries <strong>+1 mark</strong>.</p>
+            <p>4. <strong>Negative Marking:</strong> There will be a deduction of <strong>0.33 marks</strong> for every wrong answer.</p>
+            <p>5. No marks will be deducted for unattempted questions.</p>
+            <p>6. The total duration of the examination is specified by the admin.</p>
+            <p>7. The clock has been set at the server and the countdown timer at the top right corner of your screen will display the time remaining.</p>
+            <p>8. Click on <strong>'Save & Next'</strong> to save your answer and move to the next question.</p>
+            <p>9. Click on <strong>'Mark for Review'</strong> if you want to review the question later.</p>
+            <p>10. The exam will be auto-submitted when the timer reaches zero.</p>
+            <br>
+            <p style="text-align:center; font-weight:bold;">All the Best!</p>
         `,
-        declaration: "I have read and understood.",
+        declaration: "I have read and understood the instructions.",
         btn: "I am ready to begin"
     },
     bn: {
         title: "নির্দেশাবলী",
         choose: "ভাষা: ",
         content: `
-            <p><strong>মনোযোগ দিয়ে পড়ুন:</strong></p>
-            <p>১. সময়সীমা অ্যাডমিন দ্বারা নির্ধারিত।</p>
-            <p>২. সঠিক উত্তরে +১, ভুল উত্তরে -০.৩৩।</p>
-            <p>৩. উত্তর দিতে অপশনে ক্লিক করুন।</p>
+            <h3 style="margin-top:0;">অনুগ্রহ করে নির্দেশাবলী মনোযোগ সহকারে পড়ুন:</h3>
+            <p>১. এই পরীক্ষায় অবজেক্টিভ টাইপ মাল্টিপল চয়েস প্রশ্ন (MCQ) থাকবে।</p>
+            <p>২. প্রতিটি প্রশ্নে ৪টি বিকল্প থাকবে, যার মধ্যে মাত্র একটি সঠিক।</p>
+            <p>৩. <strong>নম্বর:</strong> প্রতিটি সঠিক উত্তরের জন্য <strong>+১ নম্বর</strong> দেওয়া হবে।</p>
+            <p>৪. <strong>নেগেটিভ মার্কিং:</strong> প্রতিটি ভুল উত্তরের জন্য <strong>০.৩৩ নম্বর</strong> কাটা যাবে।</p>
+            <p>৫. কোনো প্রশ্নের উত্তর না দিলে কোনো নম্বর কাটা যাবে না।</p>
+            <p>৬. পরীক্ষার মোট সময়সীমা নির্দিষ্ট করা আছে এবং স্ক্রিনের উপরে টাইমার দেখা যাবে।</p>
+            <p>৭. উত্তর সেভ করতে এবং পরবর্তী প্রশ্নে যেতে <strong>'Save & Next'</strong> এ ক্লিক করুন।</p>
+            <p>৮. আপনি যদি কোনো প্রশ্ন পরে রিভিউ করতে চান তবে <strong>'Mark for Review'</strong> ব্যবহার করতে পারেন।</p>
+            <p>৯. টাইমার শূন্যে পৌঁছালে পরীক্ষাটি স্বয়ংক্রিয়ভাবে জমা (Submit) হয়ে যাবে।</p>
+            <br>
+            <p style="text-align:center; font-weight:bold;">শুভকামনা!</p>
         `,
-        declaration: "আমি নির্দেশাবলী পড়েছি।",
+        declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি।",
         btn: "আমি শুরু করতে প্রস্তুত"
     }
 };
@@ -146,9 +160,8 @@ const translations = {
 const langSelector = document.getElementById('langSelector');
 function updateInstructions(lang) {
     const t = translations[lang];
-    // Keep dynamic title
     const currentTitle = document.getElementById('instTitle').innerText;
-    if(currentTitle.includes("General")) document.getElementById('instTitle').innerText = t.title;
+    if(currentTitle.includes("General") || currentTitle.includes("Instructions")) document.getElementById('instTitle').innerText = t.title;
     
     document.getElementById('lblChooseLang').innerText = t.choose;
     document.getElementById('instContent').innerHTML = t.content;
@@ -225,7 +238,6 @@ pauseMsg.style.cssText = "position:absolute; top:50%; left:50%; transform:transl
 document.querySelector('.content-area').parentElement.appendChild(pauseMsg);
 function startTimer() {
     clearInterval(timerInterval);
-    // Initial display
     let m = parseInt(timeLeft / 60), s = parseInt(timeLeft % 60);
     document.getElementById('timerDisplay').innerText = `${m}:${s<10?'0'+s:s}`;
     

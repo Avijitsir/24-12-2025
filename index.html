@@ -70,7 +70,10 @@
         <div class="q-info-bar">
             <div class="q-num">Question No. <span id="currentQNum">1</span></div>
             <div class="q-meta">
-                <div class="marks-badge"><span class="plus">+1</span><span class="minus">-0.33</span></div>
+                <div class="marks-badge">
+                    <span class="plus" id="dispPosMark">+1</span>
+                    <span class="minus" id="dispNegMark">-0.33</span>
+                </div>
                 <div class="lang-select">
                     View in <select id="quizLangSelect" style="border:none; background:transparent; font-weight:bold;"><option value="bn">Bengali</option><option value="en">English</option></select>
                 </div>
@@ -114,7 +117,10 @@
     <div id="resultModal" class="modal">
         <div class="modal-content result-box">
             <div class="res-header-pnl">
-                <h2 style="margin:0 0 10px 0; text-align:center;">Result Analysis</h2>
+                <h2 style="margin:0 0 5px 0; text-align:center;">Result Analysis</h2>
+                
+                <div id="passFailBox" style="text-align:center; padding:8px; margin-bottom:10px; font-weight:bold; font-size:16px; border-radius:5px;"></div>
+
                 <div class="score-grid">
                     <div class="s-item"><span class="lbl">Score</span><span class="val" id="resScore">0</span></div>
                     <div class="s-item"><span class="lbl">Correct</span><span class="val green" id="resCorrect">0</span></div>

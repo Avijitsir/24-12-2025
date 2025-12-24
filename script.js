@@ -59,6 +59,8 @@ function initQuestions(sourceData) {
         q.options_bn = newOptBn;
         q.options_en = newOptEn;
         q.correctIndex = newCorrectIndex;
+        // Keep explanation as is
+        q.explanation = q.explanation || "";
     });
     questions = shuffleArray(tempQuestions);
 }
@@ -88,7 +90,8 @@ function loadQuizFromFirebase(quizId) {
                     question_en: q.question, 
                     options_bn: q.options,
                     options_en: q.options,
-                    correctIndex: correctIdx
+                    correctIndex: correctIdx,
+                    explanation: q.explanation // NEW: Load explanation
                 };
             });
 
@@ -111,7 +114,7 @@ function loadQuizFromFirebase(quizId) {
     });
 }
 
-// --- Instructions (Updated to match standard Exam Interface) ---
+// --- Instructions ---
 const translations = {
     en: {
         title: "General Instructions",
@@ -133,22 +136,10 @@ const translations = {
                     <li><span class="dot-icon marked-ans"></span> The question(s) "Answered and Marked for Review" will be considered for evaluation.</li>
                 </ul>
 
-                <p><strong>Navigating to a Question:</strong></p>
-                <p>4. To answer a question, do the following:</p>
-                <ul style="margin-left: 20px;">
-                    <li>Click on the question number in the Question Palette at the right of your screen to go to that numbered question directly.</li>
-                    <li>Click on <strong>Save & Next</strong> to save your answer for the current question and then go to the next question.</li>
-                    <li>Click on <strong>Mark for Review & Next</strong> to save your answer for the current question, mark it for review, and then go to the next question.</li>
-                </ul>
-
-                <p><strong>Answering a Question:</strong></p>
-                <p>5. Procedure for answering a multiple choice type question:</p>
-                <ul style="margin-left: 20px;">
-                    <li>To select your answer, click on the button of one of the options.</li>
-                    <li>To deselect your chosen answer, click on the button of the chosen option again or click on the <strong>Clear Response</strong> button.</li>
-                    <li>To change your chosen answer, click on the button of another option.</li>
-                    <li>To save your answer, you MUST click on the <strong>Save & Next</strong> button.</li>
-                </ul>
+                <p>4. To answer a question, click on the option you want to select.</p>
+                <p>5. To deselect your chosen answer, click on the <strong>Clear Response</strong> button.</p>
+                <p>6. To save your answer, you MUST click on the <strong>Save & Next</strong> button.</p>
+                <p>7. To mark the question for review, click on the <strong>Mark for Review & Next</strong> button.</p>
             </div>
         `,
         declaration: "I have read and understood the instructions. I agree that in case of not adhering to the instructions, I shall be liable to be debarred from this Test.",
@@ -174,21 +165,10 @@ const translations = {
                     <li><span class="dot-icon marked-ans"></span> যে প্রশ্নগুলো "উত্তর দেওয়া এবং পর্যালোচনার জন্য চিহ্নিত" (Marked for Review), সেগুলো মূল্যায়নের জন্য গণ্য হবে।</li>
                 </ul>
 
-                <p><strong>প্রশ্নে যাওয়া (Navigation):</strong></p>
-                <p>৪. উত্তর দেওয়ার জন্য নিম্নলিখিত কাজগুলি করুন:</p>
-                <ul style="margin-left: 20px;">
-                    <li>সরাসরি কোনো প্রশ্নে যেতে ডানদিকের প্যালেট থেকে সেই প্রশ্ন নম্বরে ক্লিক করুন।</li>
-                    <li>বর্তমান প্রশ্নের উত্তর সেভ করতে এবং পরবর্তী প্রশ্নে যেতে <strong>Save & Next</strong> এ ক্লিক করুন।</li>
-                    <li>বর্তমান প্রশ্নটি পর্যালোচনার জন্য চিহ্নিত করতে <strong>Mark for Review & Next</strong> এ ক্লিক করুন।</li>
-                </ul>
-
-                <p><strong>উত্তর দেওয়ার নিয়ম:</strong></p>
-                <ul style="margin-left: 20px;">
-                    <li>আপনার উত্তর নির্বাচন করতে অপশনগুলোর মধ্যে একটিতে ক্লিক করুন।</li>
-                    <li>নির্বাচিত উত্তর মুছে ফেলতে <strong>Clear Response</strong> বাটনে ক্লিক করুন।</li>
-                    <li>উত্তর পরিবর্তন করতে অন্য একটি অপশনে ক্লিক করুন।</li>
-                    <li>উত্তর সেভ করতে অবশ্যই <strong>Save & Next</strong> বাটনে ক্লিক করুন।</li>
-                </ul>
+                <p>৪. উত্তর দিতে, আপনার পছন্দের অপশনে ক্লিক করুন।</p>
+                <p>৫. উত্তর মুছে ফেলতে <strong>Clear Response</strong> বাটনে ক্লিক করুন।</p>
+                <p>৬. উত্তর সেভ করতে অবশ্যই <strong>Save & Next</strong> বাটনে ক্লিক করুন।</p>
+                <p>৭. প্রশ্নটি পরে দেখার জন্য চিহ্নিত করতে <strong>Mark for Review & Next</strong> বাটনে ক্লিক করুন।</p>
             </div>
         `,
         declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি। আমি রাজি আছি যে নির্দেশাবলী না মানলে আমাকে এই পরীক্ষা থেকে বিরত রাখা হতে পারে।",
@@ -201,9 +181,8 @@ function updateInstructions(lang) {
     const t = translations[lang];
     const currentTitle = document.getElementById('instTitle').innerText;
     
-    // Only generic title gets translated, quiz title stays
     if(currentTitle.includes("General") || currentTitle.includes("Instructions") || currentTitle.includes("সাধারণ")) {
-        // Generic title logic if needed
+        
     }
     
     document.getElementById('lblChooseLang').innerText = t.choose;
@@ -216,8 +195,31 @@ document.getElementById('agreeCheck').addEventListener('change', (e) => { docume
 document.getElementById('startTestBtn').addEventListener('click', () => {
     document.getElementById('instructionScreen').style.display = 'none';
     document.getElementById('quizMainArea').style.display = 'block';
+    
+    if(document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    } else if(document.documentElement.webkitRequestFullscreen) { 
+        document.documentElement.webkitRequestFullscreen();
+    }
+
     loadQuestion(0);
     startTimer();
+});
+
+// Fullscreen Logic
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        document.getElementById('fullscreenOverlay').style.display = 'flex';
+    } else {
+        document.getElementById('fullscreenOverlay').style.display = 'none';
+    }
+});
+document.getElementById('returnFsBtn').addEventListener('click', () => {
+    if(document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+    } else if(document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+    }
 });
 
 // --- Quiz ---
@@ -233,7 +235,14 @@ function loadQuestion(index) {
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
     
-    document.getElementById('saveNextBtn').innerText = "Save & Next";
+    const nextBtn = document.getElementById('saveNextBtn');
+    if (index === questions.length - 1) {
+        nextBtn.innerText = "Final Submit";
+        nextBtn.style.backgroundColor = "#ff5722"; 
+    } else {
+        nextBtn.innerText = "Save & Next";
+        nextBtn.style.backgroundColor = "#00c696";
+    }
 
     opts.forEach((opt, i) => {
         const row = document.createElement('div');
@@ -246,11 +255,21 @@ function loadQuestion(index) {
 }
 function getSelIdx() { const s = document.querySelector('.option-row.selected'); return s ? Array.from(s.parentNode.children).indexOf(s) : null; }
 document.getElementById('markReviewBtn').addEventListener('click', () => { if(isPaused) return; const i = getSelIdx(); if(i!==null){ userAnswers[currentIdx]=i; status[currentIdx]=4; } else status[currentIdx]=3; nextQ(); });
+
 document.getElementById('saveNextBtn').addEventListener('click', () => { 
-    if(isPaused) return; const i = getSelIdx(); 
+    if(isPaused) return; 
+    const i = getSelIdx(); 
     if(i!==null){ userAnswers[currentIdx]=i; status[currentIdx]=2; } else status[currentIdx]=1; 
-    nextQ(); 
+    
+    if (currentIdx === questions.length - 1) {
+        if (confirm("আপনি কি নিশ্চিত যে আপনি পরীক্ষা শেষ করতে চান?")) {
+            submitTest();
+        }
+    } else {
+        nextQ(); 
+    }
 });
+
 document.getElementById('clearResponseBtn').addEventListener('click', () => { if(isPaused) return; document.querySelectorAll('.option-row').forEach(r => r.classList.remove('selected')); userAnswers[currentIdx]=null; status[currentIdx]=1; });
 function nextQ() { if(currentIdx < questions.length - 1) loadQuestion(currentIdx + 1); else openDrawer(); }
 
@@ -308,6 +327,8 @@ function submitTest() {
     if(isSubmitted) return;
     isSubmitted = true;
     clearInterval(timerInterval);
+
+    if(document.exitFullscreen) document.exitFullscreen();
 
     let s=0, c=0, w=0, sk=0;
     questions.forEach((q, i) => { if(userAnswers[i]!==null) { if(userAnswers[i]===q.correctIndex) {s++; c++;} else {s-=0.33; w++;} } else sk++; });
@@ -369,6 +390,17 @@ function loadResultQuestion(realIdx) {
         if(u===i && u!==c) cls+=' user-wrong';
         con.innerHTML += `<div class="${cls}"><div class="res-circle"></div><div class="res-opt-text">${o}</div></div>`;
     });
+    
+    // NEW: Show Explanation
+    const explBox = document.getElementById('resExplanation');
+    const explText = document.getElementById('resExplText');
+    if(q.explanation && q.explanation.trim() !== "") {
+        explBox.style.display = "block";
+        explText.innerText = q.explanation;
+    } else {
+        explBox.style.display = "none";
+    }
+
     document.getElementById('resPrevBtn').onclick = () => { if(nIdx > 0) loadResultQuestion(filteredIndices[nIdx - 1]); };
     document.getElementById('resNextBtn').onclick = () => { if(nIdx < filteredIndices.length - 1) loadResultQuestion(filteredIndices[nIdx + 1]); };
 }

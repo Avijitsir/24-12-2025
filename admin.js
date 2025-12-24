@@ -16,7 +16,7 @@ const database = firebase.database();
 // Elements
 const qIdIn = document.getElementById('quiz-id-input');
 const qTitIn = document.getElementById('quiz-title-input');
-const qTimeIn = document.getElementById('quiz-duration'); // New Time Input
+const qTimeIn = document.getElementById('quiz-duration');
 const loadQuizBtn = document.getElementById('load-quiz-btn');
 const subjectSelect = document.getElementById('question-subject-select');
 
@@ -26,6 +26,7 @@ const o2 = document.getElementById('option2-input');
 const o3 = document.getElementById('option3-input');
 const o4 = document.getElementById('option4-input');
 const cOpt = document.getElementById('correct-option-select');
+const explIn = document.getElementById('explanation-input'); // NEW
 
 const addBtn = document.getElementById('add-question-btn');
 const updBtn = document.getElementById('update-question-btn');
@@ -54,10 +55,11 @@ function getForm() {
     const q = qText.value.trim();
     const ops = [o1.value.trim(), o2.value.trim(), o3.value.trim(), o4.value.trim()];
     const c = cOpt.value;
+    const ex = explIn.value.trim(); // Get Explanation
 
     if(!q || ops.some(o=>!o) || !c) { show("সব তথ্য দিন!", "error"); return null; }
     
-    return { subject: s, question: q, options: ops, answer: ops[parseInt(c)] };
+    return { subject: s, question: q, options: ops, answer: ops[parseInt(c)], explanation: ex };
 }
 
 function addQ() {
@@ -72,6 +74,7 @@ function editQ(i) {
     o1.value = q.options[0]; o2.value = q.options[1];
     o3.value = q.options[2]; o4.value = q.options[3];
     cOpt.value = q.options.indexOf(q.answer);
+    explIn.value = q.explanation || ""; // Set Explanation
     
     editIdx = i;
     addBtn.style.display='none'; updBtn.style.display='block';
@@ -90,7 +93,7 @@ function updQ() {
 function delQ(i) { if(confirm("মুছে ফেলবেন?")) { questions.splice(i, 1); render(); } }
 
 function clear() {
-    qText.value=''; o1.value=''; o2.value=''; o3.value=''; o4.value=''; cOpt.value='';
+    qText.value=''; o1.value=''; o2.value=''; o3.value=''; o4.value=''; cOpt.value=''; explIn.value='';
 }
 
 function procBulk() {
@@ -107,11 +110,15 @@ function procBulk() {
             const qt = lines[0];
             const ops = [lines[1], lines[2], lines[3], lines[4]];
             const ansLine = lines.find(l => l.toLowerCase().startsWith("answer:"));
+            const explLine = lines.find(l => l.toLowerCase().startsWith("explanation:")); // Check for Explanation
             
             if(ansLine) {
                 const ans = ansLine.replace(/^answer:\s*/i, "").trim();
+                let expl = "";
+                if(explLine) expl = explLine.replace(/^explanation:\s*/i, "").trim();
+
                 if(ops.includes(ans)) {
-                    questions.push({ subject: sub, question: qt, options: ops, answer: ans });
+                    questions.push({ subject: sub, question: qt, options: ops, answer: ans, explanation: expl });
                     count++;
                 }
             }
@@ -140,6 +147,7 @@ function render() {
             </div>
             <span class="q-text">Q${i+1}. ${q.question}</span>
             <ul class="q-options">${oh}</ul>
+            ${q.explanation ? `<div style="margin-top:5px; font-size:12px; color:#555;"><strong>Expl:</strong> ${q.explanation}</div>` : ''}
         `;
         qContainer.appendChild(div);
     });
@@ -148,7 +156,7 @@ function render() {
 function saveFirebase() {
     const id = qIdIn.value.trim();
     const title = qTitIn.value.trim();
-    const dur = qTimeIn.value.trim(); // Get duration
+    const dur = qTimeIn.value.trim();
 
     if(!id || !title || !dur || questions.length===0) { 
         show("ID, Title, সময় এবং প্রশ্ন দিন", "error"); return; 
@@ -158,7 +166,7 @@ function saveFirebase() {
     
     database.ref('quizzes/'+id).set({
         title: title,
-        duration: dur, // Save duration
+        duration: dur,
         questions: questions
     }).then(() => {
         show("সফল! কুইজ সেভ হয়েছে।", "success");
@@ -186,7 +194,7 @@ function loadFirebase() {
         const d = s.val();
         if(d) {
             qTitIn.value = d.title;
-            if(d.duration) qTimeIn.value = d.duration; // Load duration
+            if(d.duration) qTimeIn.value = d.duration;
             questions = d.questions || [];
             render();
             show("লোড হয়েছে", "success");

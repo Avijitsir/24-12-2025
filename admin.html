@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>কুইজ কন্ট্রোল প্যানেল</h1>
+    <div id="status-message"></div>
+
+    <div class="form-section">
+        <h2>১. কুইজ সেটিংস</h2>
+        <div class="input-group">
+            <input type="text" id="quiz-id-input" placeholder="Quiz ID (ex: gk_test_01)">
+            <button id="load-quiz-btn" class="secondary-btn">লোড করুন</button>
+        </div>
+        <input type="text" id="quiz-title-input" placeholder="কুইজের নাম (Title)">
+        
+        <div class="settings-grid">
+            <div><label>Time (Min)</label><input type="number" id="time-input" placeholder="20"></div>
+            <div><label>Marks (+)</label><input type="number" id="marks-input" placeholder="1"></div>
+            <div><label>Negative (-)</label><input type="number" id="negative-input" placeholder="0.25"></div>
+            <div><label>Pass (%)</label><input type="number" id="pass-mark-input" placeholder="40"></div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h2>২. প্রশ্ন যোগ করুন</h2>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('single')">একটা করে</button>
+            <button class="tab-btn" onclick="showTab('bulk')">বাল্ক আপলোড</button>
+        </div>
+
+        <div id="single-tab" class="tab-content active">
+            <textarea id="question-text-input" rows="3" placeholder="প্রশ্ন লিখুন..."></textarea>
+            <div class="options-grid">
+                <input type="text" id="option1-input" placeholder="Option A">
+                <input type="text" id="option2-input" placeholder="Option B">
+                <input type="text" id="option3-input" placeholder="Option C">
+                <input type="text" id="option4-input" placeholder="Option D">
+            </div>
+            <select id="correct-option-select">
+                <option value="">সঠিক উত্তর বাছুন...</option>
+                <option value="0">Option A</option>
+                <option value="1">Option B</option>
+                <option value="2">Option C</option>
+                <option value="3">Option D</option>
+            </select>
+            <textarea id="explanation-input" rows="2" placeholder="ব্যাখ্যা (Explanation)..." style="margin-top:10px;"></textarea>
+            <button id="add-question-btn">তালিকায় যোগ করুন</button>
+            <button id="update-question-btn" style="display:none; background:#fbc531; color:black;">আপডেট করুন</button>
+        </div>
+
+        <div id="bulk-tab" class="tab-content">
+            <textarea id="bulk-input-textarea" rows="10" placeholder="প্রশ্ন পেস্ট করুন..."></textarea>
+            <button id="process-bulk-btn" style="background:#2ecc71;">বাল্ক প্রসেস করুন</button>
+        </div>
+    </div>
+
+    <div class="preview-section">
+        <h2 id="questions-list-header">প্রশ্ন তালিকা (0)</h2>
+        <div id="questions-container"></div>
+    </div>
+
+    <div class="save-section">
+        <button id="save-quiz-btn">💾 সেভ এবং লিংক তৈরি করুন</button>
+        <div id="share-link-box" style="display:none; margin-top:15px; background:#e8f5e9; padding:10px;">
+            <input type="text" id="generated-link" readonly style="width:100%;">
+            <button onclick="copyLink()">📋 কপি</button>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

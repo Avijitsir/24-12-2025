@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utkarsh Online Exam</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div id="start-screen" class="screen active">
+        <div class="card">
+            <h1 id="quiz-title">Loading Exam...</h1>
+            <p style="color:#666;">সরাসরি পরীক্ষা শুরু করুন</p>
+            
+            <div class="info-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:20px 0;">
+                <div style="background:#e3f2fd; padding:10px; border-radius:5px;">❓ <span id="total-q">0</span> Qs</div>
+                <div style="background:#e3f2fd; padding:10px; border-radius:5px;">⏱ <span id="total-time">0</span> Min</div>
+                <div style="background:#e3f2fd; padding:10px; border-radius:5px;">✅ <span id="total-marks">0</span> Marks</div>
+                <div style="background:#ffebee; padding:10px; border-radius:5px; color:red;">⚠ Neg: <span id="neg-mark">0</span></div>
+            </div>
+            
+            <button id="start-btn">Start Exam Now</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="top-bar">
+            <div id="timer">00:00</div>
+            <button id="submit-btn" class="sm-btn">Submit</button>
+        </div>
+        
+        <div class="q-container">
+            <div class="q-info">
+                <span>Question <span id="curr-q-no">1</span></span>
+                <span style="color:#666;">Marks: <span id="q-mark-val">1</span></span>
+            </div>
+            <div id="question-text">Loading...</div>
+            <div id="options-container"></div>
+        </div>
+
+        <div class="nav-btns">
+            <button id="skip-btn" class="nav-btn" style="background:#607d8b; margin-top:10px;">Skip / Next</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="card">
+            <h2 id="result-status">Result</h2>
+            <div class="score-circle">
+                <span id="final-score">0</span>
+                <small>Score</small>
+            </div>
+            <div class="result-stats">
+                <div style="color:green; font-weight:bold;">Correct: <span id="res-correct">0</span></div>
+                <div style="color:red; font-weight:bold;">Wrong: <span id="res-wrong">0</span></div>
+            </div>
+            <button id="view-sol-btn">View Solutions</button>
+            <button onclick="location.reload()" style="background:#555; margin-top:10px;">Try Again</button>
+        </div>
+        
+        <div id="solution-container" style="display:none; margin-top:20px;">
+            <h3>বিস্তারিত সমাধান</h3>
+            <div id="sol-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

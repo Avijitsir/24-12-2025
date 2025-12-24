@@ -1,0 +1,21 @@
+body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+.container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+h1, h2 { text-align: center; color: #333; }
+.form-section { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
+input, textarea, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+.settings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+button:hover { opacity: 0.9; }
+.secondary-btn { background: #555; width: auto; }
+.q-card { background: white; padding: 10px; border-bottom: 1px solid #eee; position: relative; }
+.q-header { display: flex; justify-content: space-between; font-weight: bold; }
+.btn-edit { color: orange; cursor: pointer; margin-right: 10px; }
+.btn-delete { color: red; cursor: pointer; }
+#status-message { display: none; padding: 10px; text-align: center; color: white; border-radius: 5px; margin-bottom: 10px; }
+.success { background: #2ecc71; } .error { background: #e74c3c; }
+.tabs { display: flex; gap: 5px; margin-bottom: 10px; }
+.tab-btn { background: #ddd; color: #333; flex: 1; }
+.tab-btn.active { background: #3498db; color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }

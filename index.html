@@ -16,6 +16,15 @@
 </head>
 <body>
 
+    <div id="fullscreenOverlay" class="fs-overlay" style="display:none;">
+        <div class="fs-box">
+            <span class="material-icons" style="font-size: 40px; color: #ff9800;">warning</span>
+            <h3>সতর্কতা!</h3>
+            <p>ফুলস্ক্রিন মোড বন্ধ করা যাবে না। পরীক্ষা চালিয়ে যেতে নিচের বাটনে ক্লিক করুন।</p>
+            <button id="returnFsBtn" class="tb-btn primary">Return to Fullscreen</button>
+        </div>
+    </div>
+
     <div id="instructionScreen" class="inst-container">
         <div class="inst-header">
             <h2 class="inst-title" id="instTitle">General Instructions</h2>
@@ -129,6 +138,10 @@
                 <div class="content-area" style="padding-bottom: 20px;">
                     <div class="question-text" id="resQuestionText">Loading...</div>
                     <div class="options-list" id="resOptionsContainer"></div>
+                    
+                    <div id="resExplanation" class="explanation-box" style="display:none;">
+                        <strong>Explanation:</strong> <span id="resExplText"></span>
+                    </div>
                 </div>
             </div>
             

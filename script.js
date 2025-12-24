@@ -1,14 +1,3 @@
-// --- Questions Database (Default if not loaded) ---
-const questionsSource = [
-    {
-      question_bn: "Demo Question?",
-      question_en: "Demo Question?",
-      options_bn: ["A", "B", "C", "D"],
-      options_en: ["A", "B", "C", "D"],
-      correctIndex: 0 
-    }
-];
-
 // --- Firebase Config ---
 const firebaseConfig = {
     apiKey: "AIzaSyDwGzTPmFg-gjoYtNWNJM47p22NfBugYFA",
@@ -24,14 +13,6 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
 // --- Globals ---
 let questions = [];
 let currentIdx = 0;
@@ -39,9 +20,24 @@ let status, userAnswers;
 let isSubmitted = false;
 let currentLang = 'bn'; 
 let timerInterval;
-let timeLeft = 90 * 60; // Default 90 mins
+let timeLeft = 90 * 60; 
 let isPaused = false;
 let filteredIndices = [];
+
+// Quiz Settings (Defaults)
+let quizSettings = {
+    passMark: 30,
+    posMark: 1,
+    negMark: 0.33
+};
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
 // --- Init ---
 function initQuestions(sourceData) {
@@ -59,8 +55,6 @@ function initQuestions(sourceData) {
         q.options_bn = newOptBn;
         q.options_en = newOptEn;
         q.correctIndex = newCorrectIndex;
-        // Keep explanation as is
-        q.explanation = q.explanation || "";
     });
     questions = shuffleArray(tempQuestions);
 }
@@ -82,6 +76,18 @@ function loadQuizFromFirebase(quizId) {
         const data = snapshot.val();
         
         if (data && data.questions) {
+            // Load Settings
+            if(data.title) document.getElementById('instTitle').innerText = data.title;
+            if(data.duration) timeLeft = parseInt(data.duration) * 60;
+            if(data.passMark) quizSettings.passMark = parseFloat(data.passMark);
+            if(data.posMark) quizSettings.posMark = parseFloat(data.posMark);
+            if(data.negMark) quizSettings.negMark = parseFloat(data.negMark);
+
+            // Update UI Marks
+            document.getElementById('dispPosMark').innerText = "+" + quizSettings.posMark;
+            document.getElementById('dispNegMark').innerText = "-" + quizSettings.negMark;
+
+            // Process Questions
             const processedQuestions = data.questions.map(q => {
                 let correctIdx = q.options.indexOf(q.answer);
                 if (correctIdx === -1) correctIdx = 0; 
@@ -91,21 +97,35 @@ function loadQuizFromFirebase(quizId) {
                     options_bn: q.options,
                     options_en: q.options,
                     correctIndex: correctIdx,
-                    explanation: q.explanation // NEW: Load explanation
+                    explanation: q.explanation 
                 };
             });
 
             initQuestions(processedQuestions);
-            
-            if(data.title) {
-                document.getElementById('instTitle').innerText = data.title;
-            }
-            if(data.duration) {
-                timeLeft = parseInt(data.duration) * 60;
-            }
-
             status = new Array(questions.length).fill(0); 
             userAnswers = new Array(questions.length).fill(null); 
+            
+            // Update Instructions
+            const t = translations['en']; // Default load English
+            const instHTML = `
+                <div style="font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.6;">
+                    <h3 style="margin-top:0;">Please read the instructions carefully:</h3>
+                    
+                    <p>1. <strong>Total Duration:</strong> ${data.duration || 90} Minutes.</p>
+                    <p>2. <strong>Marking Scheme:</strong> +${quizSettings.posMark} for Correct, -${quizSettings.negMark} for Wrong.</p>
+                    <p>3. <strong>Pass Mark:</strong> ${quizSettings.passMark}.</p>
+                    <p>4. The Question Palette displayed on the right side of screen will show the status of each question.</p>
+                    <ul class="legend-list" style="list-style: none; padding-left: 0;">
+                        <li><span class="dot-icon not-visited"></span> Not Visited</li>
+                        <li><span class="dot-icon not-answered"></span> Not Answered</li>
+                        <li><span class="dot-icon answered"></span> Answered</li>
+                        <li><span class="dot-icon marked"></span> Marked for Review</li>
+                        <li><span class="dot-icon marked-ans"></span> Answered & Marked for Review (Evaluated)</li>
+                    </ul>
+                    <p>5. Click <strong>Save & Next</strong> to save answer. Click <strong>Final Submit</strong> on last question to end test.</p>
+                </div>`;
+            
+            translations.en.content = instHTML; // Simple override for now
             updateInstructions('en');
             
         } else {
@@ -119,30 +139,8 @@ const translations = {
     en: {
         title: "General Instructions",
         choose: "Choose Language: ",
-        content: `
-            <div style="font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.6;">
-                <h3 style="margin-top:0;">Please read the instructions carefully:</h3>
-                
-                <p>1. The total duration of the examination is decided by the admin.</p>
-                <p>2. The clock will be set at the server. The countdown timer in the top right corner of screen will display the remaining time available for you to complete the examination.</p>
-                
-                <p>3. The Question Palette displayed on the right side of screen will show the status of each question using one of the following symbols:</p>
-                
-                <ul class="legend-list" style="list-style: none; padding-left: 0;">
-                    <li><span class="dot-icon not-visited"></span> You have not visited the question yet.</li>
-                    <li><span class="dot-icon not-answered"></span> You have not answered the question.</li>
-                    <li><span class="dot-icon answered"></span> You have answered the question.</li>
-                    <li><span class="dot-icon marked"></span> You have NOT answered the question but have marked the question for review.</li>
-                    <li><span class="dot-icon marked-ans"></span> The question(s) "Answered and Marked for Review" will be considered for evaluation.</li>
-                </ul>
-
-                <p>4. To answer a question, click on the option you want to select.</p>
-                <p>5. To deselect your chosen answer, click on the <strong>Clear Response</strong> button.</p>
-                <p>6. To save your answer, you MUST click on the <strong>Save & Next</strong> button.</p>
-                <p>7. To mark the question for review, click on the <strong>Mark for Review & Next</strong> button.</p>
-            </div>
-        `,
-        declaration: "I have read and understood the instructions. I agree that in case of not adhering to the instructions, I shall be liable to be debarred from this Test.",
+        content: "Loading...", // Overwritten dynamically
+        declaration: "I have read and understood the instructions.",
         btn: "I am ready to begin"
     },
     bn: {
@@ -150,28 +148,21 @@ const translations = {
         choose: "ভাষা নির্বাচন করুন: ",
         content: `
             <div style="font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.6;">
-                <h3 style="margin-top:0;">অনুগ্রহ করে নির্দেশাবলী মনোযোগ সহকারে পড়ুন:</h3>
-                
-                <p>১. পরীক্ষার মোট সময়কাল অ্যাডমিন দ্বারা নির্ধারিত।</p>
-                <p>২. সার্ভারে ঘড়ি সেট করা হয়েছে। স্ক্রিনের উপরের ডানদিকের কোণে কাউন্টডাউন টাইমারটি পরীক্ষার জন্য অবশিষ্ট সময় প্রদর্শন করবে।</p>
-                
-                <p>৩. স্ক্রিনের ডানদিকে প্রদর্শিত প্রশ্ন প্যালেটটি প্রতিটি প্রশ্নের অবস্থা নিম্নলিখিত প্রতীকগুলির মাধ্যমে দেখাবে:</p>
-                
+                <h3 style="margin-top:0;">অনুগ্রহ করে নির্দেশাবলী পড়ুন:</h3>
+                <p>১. <strong>সময়সীমা:</strong> অ্যাডমিন নির্ধারিত।</p>
+                <p>২. <strong>নম্বর বিভাজন:</strong> সঠিক উত্তরের জন্য নম্বর এবং ভুল উত্তরের জন্য নেগেটিভ মার্কিং প্রযোজ্য।</p>
+                <p>৩. ডানদিকের প্যালেটে প্রশ্নের অবস্থা দেখা যাবে।</p>
                 <ul class="legend-list" style="list-style: none; padding-left: 0;">
-                    <li><span class="dot-icon not-visited"></span> আপনি এখনও প্রশ্নটি দেখেননি।</li>
-                    <li><span class="dot-icon not-answered"></span> আপনি প্রশ্নটির উত্তর দেননি।</li>
-                    <li><span class="dot-icon answered"></span> আপনি প্রশ্নটির উত্তর দিয়েছেন।</li>
-                    <li><span class="dot-icon marked"></span> আপনি উত্তর দেননি কিন্তু পর্যালোচনার (Review) জন্য চিহ্নিত করেছেন।</li>
-                    <li><span class="dot-icon marked-ans"></span> যে প্রশ্নগুলো "উত্তর দেওয়া এবং পর্যালোচনার জন্য চিহ্নিত" (Marked for Review), সেগুলো মূল্যায়নের জন্য গণ্য হবে।</li>
+                    <li><span class="dot-icon not-visited"></span> প্রশ্ন দেখা হয়নি</li>
+                    <li><span class="dot-icon not-answered"></span> উত্তর দেওয়া হয়নি</li>
+                    <li><span class="dot-icon answered"></span> উত্তর দেওয়া হয়েছে</li>
+                    <li><span class="dot-icon marked"></span> রিভিউয়ের জন্য চিহ্নিত</li>
+                    <li><span class="dot-icon marked-ans"></span> উত্তর দেওয়া ও রিভিউয়ের জন্য চিহ্নিত (মূল্যায়ন হবে)</li>
                 </ul>
-
-                <p>৪. উত্তর দিতে, আপনার পছন্দের অপশনে ক্লিক করুন।</p>
-                <p>৫. উত্তর মুছে ফেলতে <strong>Clear Response</strong> বাটনে ক্লিক করুন।</p>
-                <p>৬. উত্তর সেভ করতে অবশ্যই <strong>Save & Next</strong> বাটনে ক্লিক করুন।</p>
-                <p>৭. প্রশ্নটি পরে দেখার জন্য চিহ্নিত করতে <strong>Mark for Review & Next</strong> বাটনে ক্লিক করুন।</p>
+                <p>৪. উত্তর সেভ করতে <strong>Save & Next</strong> এ ক্লিক করুন।</p>
             </div>
         `,
-        declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি। আমি রাজি আছি যে নির্দেশাবলী না মানলে আমাকে এই পরীক্ষা থেকে বিরত রাখা হতে পারে।",
+        declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি।",
         btn: "আমি শুরু করতে প্রস্তুত"
     }
 };
@@ -179,12 +170,7 @@ const translations = {
 const langSelector = document.getElementById('langSelector');
 function updateInstructions(lang) {
     const t = translations[lang];
-    const currentTitle = document.getElementById('instTitle').innerText;
-    
-    if(currentTitle.includes("General") || currentTitle.includes("Instructions") || currentTitle.includes("সাধারণ")) {
-        
-    }
-    
+    if(document.getElementById('instTitle').innerText.includes("General")) document.getElementById('instTitle').innerText = t.title;
     document.getElementById('lblChooseLang').innerText = t.choose;
     document.getElementById('instContent').innerHTML = t.content;
     document.getElementById('agreeLabel').innerText = t.declaration;
@@ -196,9 +182,10 @@ document.getElementById('startTestBtn').addEventListener('click', () => {
     document.getElementById('instructionScreen').style.display = 'none';
     document.getElementById('quizMainArea').style.display = 'block';
     
+    // Fullscreen
     if(document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
-    } else if(document.documentElement.webkitRequestFullscreen) { 
+    } else if(document.documentElement.webkitRequestFullscreen) {
         document.documentElement.webkitRequestFullscreen();
     }
 
@@ -206,7 +193,7 @@ document.getElementById('startTestBtn').addEventListener('click', () => {
     startTimer();
 });
 
-// Fullscreen Logic
+// Fullscreen Warning
 document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
         document.getElementById('fullscreenOverlay').style.display = 'flex';
@@ -215,11 +202,8 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 document.getElementById('returnFsBtn').addEventListener('click', () => {
-    if(document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-    } else if(document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
-    }
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    else if(document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
 });
 
 // --- Quiz ---
@@ -327,12 +311,38 @@ function submitTest() {
     if(isSubmitted) return;
     isSubmitted = true;
     clearInterval(timerInterval);
-
     if(document.exitFullscreen) document.exitFullscreen();
 
     let s=0, c=0, w=0, sk=0;
-    questions.forEach((q, i) => { if(userAnswers[i]!==null) { if(userAnswers[i]===q.correctIndex) {s++; c++;} else {s-=0.33; w++;} } else sk++; });
-    document.getElementById('resScore').innerText = s.toFixed(2);
+    questions.forEach((q, i) => { 
+        if(userAnswers[i]!==null) { 
+            if(userAnswers[i]===q.correctIndex) {
+                s += quizSettings.posMark; 
+                c++;
+            } else {
+                s -= quizSettings.negMark; 
+                w++;
+            } 
+        } else sk++; 
+    });
+
+    const score = s.toFixed(2);
+    const passBox = document.getElementById('passFailBox');
+    
+    if (s >= quizSettings.passMark) {
+        passBox.innerHTML = `🎉 অভিনন্দন! আপনি পাস করেছেন।`;
+        passBox.style.background = "#d4edda";
+        passBox.style.color = "#155724";
+        passBox.style.border = "1px solid #c3e6cb";
+    } else {
+        const needed = (quizSettings.passMark - s).toFixed(2);
+        passBox.innerHTML = `😞 দুঃখিত! আপনি ফেল করেছেন।<br><span style="font-size:13px; font-weight:normal;">পাস করার জন্য আরও <strong>${needed}</strong> নম্বর প্রয়োজন ছিল।</span>`;
+        passBox.style.background = "#f8d7da";
+        passBox.style.color = "#721c24";
+        passBox.style.border = "1px solid #f5c6cb";
+    }
+
+    document.getElementById('resScore').innerText = score;
     document.getElementById('resCorrect').innerText = c;
     document.getElementById('resWrong').innerText = w;
     document.getElementById('resSkip').innerText = sk;
@@ -391,7 +401,7 @@ function loadResultQuestion(realIdx) {
         con.innerHTML += `<div class="${cls}"><div class="res-circle"></div><div class="res-opt-text">${o}</div></div>`;
     });
     
-    // NEW: Show Explanation
+    // Show Explanation
     const explBox = document.getElementById('resExplanation');
     const explText = document.getElementById('resExplText');
     if(q.explanation && q.explanation.trim() !== "") {

@@ -2,82 +2,161 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="admin.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Utkarsh Coaching Exam</title>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+    <script>MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>কুইজ কন্ট্রোল প্যানেল</h1>
-        <div id="status-message"></div>
 
-        <div class="form-section">
-            <h2>১. কুইজ সেটআপ</h2>
-            <div class="input-group">
-                <input type="text" id="quiz-id-input" placeholder="Quiz ID (ex: test_01)">
-                <button id="load-quiz-btn" class="secondary-btn">লোড</button>
+    <div id="fullscreenOverlay" class="fs-overlay" style="display:none;">
+        <div class="fs-box">
+            <span class="material-icons" style="font-size: 40px; color: #ff9800;">warning</span>
+            <h3>সতর্কতা!</h3>
+            <p>ফুলস্ক্রিন মোড বন্ধ করা যাবে না। পরীক্ষা চালিয়ে যেতে নিচের বাটনে ক্লিক করুন।</p>
+            <button id="returnFsBtn" class="tb-btn primary">Return to Fullscreen</button>
+        </div>
+    </div>
+
+    <div id="instructionScreen" class="inst-container">
+        <div class="inst-header">
+            <h2 class="inst-title" id="instTitle">General Instructions</h2>
+            <div class="lang-box">
+                <span id="lblChooseLang">Choose Language: </span>
+                <select class="inst-select" id="langSelector">
+                    <option value="en">English</option>
+                    <option value="bn">Bengali</option>
+                </select>
             </div>
-            <input type="text" id="quiz-title-input" placeholder="কুইজের নাম (Title)">
-            <input type="number" id="quiz-duration" placeholder="সময় (মিনিট)" style="margin-top:10px;">
         </div>
 
-        <div class="form-section" style="background:#e3f2fd;">
-            <label style="color:#0d47a1;">বিষয় (Subject):</label>
-            <select id="question-subject-select" style="border:2px solid #2196f3; font-weight:bold;">
-                <option value="General Knowledge">General Knowledge</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="General Science">General Science</option>
-                <option value="English">English</option>
-            </select>
-        </div>
+        <div class="inst-content" id="instContent">Loading Instructions...</div>
 
-        <div class="form-section" id="question-form">
-            <h2>২. প্রশ্ন যোগ করুন</h2>
-            <textarea id="question-text-input" rows="3" placeholder="প্রশ্ন লিখুন..."></textarea>
-            <div class="options-grid">
-                <div><label>A</label><input type="text" id="option1-input"></div>
-                <div><label>B</label><input type="text" id="option2-input"></div>
-                <div><label>C</label><input type="text" id="option3-input"></div>
-                <div><label>D</label><input type="text" id="option4-input"></div>
+        <div class="inst-footer">
+            <div class="declaration">
+                <input type="checkbox" id="agreeCheck">
+                <label for="agreeCheck" id="agreeLabel">I have read and understood the instructions.</label>
             </div>
-            <label>সঠিক উত্তর:</label>
-            <select id="correct-option-select">
-                <option value="">বাছাই করুন...</option>
-                <option value="0">Option A</option>
-                <option value="1">Option B</option>
-                <option value="2">Option C</option>
-                <option value="3">Option D</option>
-            </select>
-            <button id="add-question-btn">যোগ করুন</button>
-            <button id="update-question-btn" style="display:none; background:#ffc107; color:black;">আপডেট</button>
+            <button class="begin-btn" id="startTestBtn" disabled>I am ready to begin</button>
+        </div>
+    </div>
+
+    <div id="quizMainArea" style="display: none;">
+        <header class="app-header">
+            <div class="header-left">
+                <span class="material-icons menu-icon">menu</span>
+                <span class="app-logo">Utkarsh Coaching</span>
+            </div>
+            <div class="header-right">
+                <div class="timer-box">
+                    <span id="timerDisplay">00:00</span>
+                    <span class="material-icons" style="font-size:16px;">pause_circle</span>
+                </div>
+                <button class="header-btn" id="pauseBtn">Pause</button>
+            </div>
+        </header>
+
+        <div class="section-bar">
+            <div class="chip active">All Sections</div>
         </div>
 
-        <div class="form-section">
-            <h2>৩. বাল্ক অ্যাড (Bulk Add)</h2>
-            <p style="font-size:12px; color:#666; background:#fff; padding:5px; border:1px solid #ddd;">
-                Format: Question > Opt 1 > Opt 2 > Opt 3 > Opt 4 > Answer: Correct Answer > (Empty Line)
-            </p>
-            <textarea id="bulk-input-textarea" rows="6" placeholder="Paste here..."></textarea>
-            <button id="process-bulk-btn" style="background:#673ab7;">বাল্ক প্রসেস</button>
+        <div class="q-info-bar">
+            <div class="q-num">Question No. <span id="currentQNum">1</span></div>
+            <div class="q-meta">
+                <div class="marks-badge"><span class="plus">+1</span><span class="minus">-0.33</span></div>
+                <div class="lang-select">
+                    View in <select id="quizLangSelect" style="border:none; background:transparent; font-weight:bold;"><option value="bn">Bengali</option><option value="en">English</option></select>
+                </div>
+            </div>
         </div>
 
-        <div class="preview-section">
-            <h2 id="questions-list-header">তালিকা (0)</h2>
-            <div id="questions-container"></div>
+        <div class="content-area">
+            <div class="question-text" id="questionTextBox">Loading...</div>
+            <div class="options-list" id="optionsContainer"></div>
         </div>
 
-        <div class="save-section">
-            <button id="save-quiz-btn">💾 সেভ এবং লিংক তৈরি করুন</button>
-            <div id="share-link-box" style="display:none; margin-top:20px; background:#e8f5e9; padding:15px;">
-                <input type="text" id="generated-link" style="width:100%; font-weight:bold;" readonly>
-                <button onclick="copyToClipboard()" style="background:#2e7d32; margin-top:5px;">কপি</button>
+        <footer class="app-footer">
+            <div class="footer-row">
+                <button class="tb-btn secondary" id="markReviewBtn">Mark for Review & Next</button>
+                <button class="tb-btn secondary" id="clearResponseBtn">Clear Response</button>
+            </div>
+            <div class="footer-row" style="margin-top: 8px;">
+                <button class="tb-btn primary full-width" id="saveNextBtn">Save & Next</button>
+            </div>
+        </footer>
+
+        <div class="drawer-overlay" id="sheetOverlay"></div>
+        <div class="side-drawer" id="paletteSheet">
+            <div class="drawer-header">
+                <div class="user-info"><div class="avatar">U</div><span>Candidate</span></div>
+                <span class="material-icons close-drawer" id="closeSheetBtn">close</span>
+            </div>
+            <div class="legend-grid">
+                <div class="l-item"><span class="dot answered"></span> Answered</div>
+                <div class="l-item"><span class="dot marked"></span> Marked</div>
+                <div class="l-item"><span class="dot not-visited"></span> Not Visited</div>
+                <div class="l-item"><span class="dot marked-ans"></span> Marked & Ans</div>
+                <div class="l-item"><span class="dot not-answered"></span> Not Answered</div>
+            </div>
+            <div class="section-header">Questions Palette</div>
+            <div class="drawer-content"><div class="palette-grid" id="paletteGrid"></div></div>
+            <div class="drawer-footer"><button class="tb-btn submit" id="submitTestBtn">Submit Test</button></div>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal">
+        <div class="modal-content result-box">
+            <div class="res-header-pnl">
+                <h2 style="margin:0 0 10px 0; text-align:center;">Result Analysis</h2>
+                <div class="score-grid">
+                    <div class="s-item"><span class="lbl">Score</span><span class="val" id="resScore">0</span></div>
+                    <div class="s-item"><span class="lbl">Correct</span><span class="val green" id="resCorrect">0</span></div>
+                    <div class="s-item"><span class="lbl">Wrong</span><span class="val red" id="resWrong">0</span></div>
+                    <div class="s-item"><span class="lbl">Skipped</span><span class="val gray" id="resSkip">0</span></div>
+                </div>
+                <div class="filter-tabs">
+                    <button class="f-btn active" onclick="applyFilter('all')">All</button>
+                    <button class="f-btn" onclick="applyFilter('correct')">Correct</button>
+                    <button class="f-btn" onclick="applyFilter('wrong')">Wrong</button>
+                    <button class="f-btn" onclick="applyFilter('skipped')">Skipped</button>
+                </div>
+                <div class="res-palette-scroll" id="resPaletteContainer"></div>
+            </div>
+
+            <div class="res-content-area" id="resContentArea">
+                <div class="q-info-bar" style="border-bottom:1px solid #eee;">
+                    <div class="q-num">Question No. <span id="resCurrentQNum">1</span></div>
+                    <div class="res-status-badge" id="resQStatusBadge">Correct</div>
+                </div>
+                <div class="content-area" style="padding-bottom: 20px;">
+                    <div class="question-text" id="resQuestionText">Loading...</div>
+                    <div class="options-list" id="resOptionsContainer"></div>
+                    
+                    <div id="resExplanation" class="explanation-box" style="display:none;">
+                        <strong>Explanation:</strong> <span id="resExplText"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="resEmptyMsg" style="display:none; flex:1; justify-content:center; align-items:center; color:#888;">No questions found in this category.</div>
+
+            <div class="result-footer">
+                <div class="footer-row">
+                    <button class="tb-btn secondary" id="resPrevBtn">Previous</button>
+                    <button class="tb-btn secondary" id="resNextBtn">Next</button>
+                </div>
+                <button class="tb-btn primary full-width" style="margin-top:10px;" onclick="location.reload()">Close & Re-attempt</button>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="admin.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

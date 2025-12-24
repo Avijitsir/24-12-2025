@@ -17,9 +17,9 @@ const database = firebase.database();
 const qIdIn = document.getElementById('quiz-id-input');
 const qTitIn = document.getElementById('quiz-title-input');
 const qTimeIn = document.getElementById('quiz-duration');
-const qPassIn = document.getElementById('quiz-pass-mark'); // New
-const qPosIn = document.getElementById('quiz-pos-mark');   // New
-const qNegIn = document.getElementById('quiz-neg-mark');   // New
+const qPassIn = document.getElementById('quiz-pass-mark');
+const qPosIn = document.getElementById('quiz-pos-mark');
+const qNegIn = document.getElementById('quiz-neg-mark');
 
 const loadQuizBtn = document.getElementById('load-quiz-btn');
 const subjectSelect = document.getElementById('question-subject-select');
@@ -62,7 +62,6 @@ function getForm() {
     const ex = explIn.value.trim();
 
     if(!q || ops.some(o=>!o) || !c) { show("সব তথ্য দিন!", "error"); return null; }
-    
     return { subject: s, question: q, options: ops, answer: ops[parseInt(c)], explanation: ex };
 }
 
@@ -79,7 +78,6 @@ function editQ(i) {
     o3.value = q.options[2]; o4.value = q.options[3];
     cOpt.value = q.options.indexOf(q.answer);
     explIn.value = q.explanation || "";
-    
     editIdx = i;
     addBtn.style.display='none'; updBtn.style.display='block';
     document.getElementById('question-form').scrollIntoView({behavior:"smooth"});
@@ -129,7 +127,7 @@ function procBulk() {
         }
     });
 
-    if(count>0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন যোগ হয়েছে`, "success"); }
+    if(count>0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন (${sub}) যোগ হয়েছে`, "success"); }
     else show("ফরম্যাট সঠিক নয়", "error");
 }
 
@@ -161,10 +159,9 @@ function saveFirebase() {
     const id = qIdIn.value.trim();
     const title = qTitIn.value.trim();
     const dur = qTimeIn.value.trim();
-    // New Settings
-    const pass = qPassIn.value.trim() || 30; // Default 30
-    const pos = qPosIn.value.trim() || 1;    // Default 1
-    const neg = qNegIn.value.trim() || 0.33; // Default 0.33
+    const pass = qPassIn.value.trim() || 30;
+    const pos = qPosIn.value.trim() || 1;
+    const neg = qNegIn.value.trim() || 0.33;
 
     if(!id || !title || !dur || questions.length===0) { 
         show("ID, Title, সময় এবং প্রশ্ন দিন", "error"); return; 
@@ -209,7 +206,6 @@ function loadFirebase() {
             if(d.passMark) qPassIn.value = d.passMark;
             if(d.posMark) qPosIn.value = d.posMark;
             if(d.negMark) qNegIn.value = d.negMark;
-            
             questions = d.questions || [];
             render();
             show("লোড হয়েছে", "success");

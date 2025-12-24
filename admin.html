@@ -19,7 +19,25 @@
                 <button id="load-quiz-btn" class="secondary-btn">লোড</button>
             </div>
             <input type="text" id="quiz-title-input" placeholder="কুইজের নাম (Title)">
-            <input type="number" id="quiz-duration" placeholder="সময় (মিনিট)" style="margin-top:10px;">
+            
+            <div class="options-grid" style="margin-top: 10px;">
+                <div>
+                    <label>সময় (মিনিট):</label>
+                    <input type="number" id="quiz-duration" placeholder="Ex: 90">
+                </div>
+                <div>
+                    <label>পাস মার্ক:</label>
+                    <input type="number" id="quiz-pass-mark" placeholder="Ex: 30">
+                </div>
+                <div>
+                    <label>প্রতি প্রশ্নে নম্বর (+):</label>
+                    <input type="number" id="quiz-pos-mark" placeholder="Ex: 1" step="0.1">
+                </div>
+                <div>
+                    <label>নেগেটিভ মার্ক (-):</label>
+                    <input type="number" id="quiz-neg-mark" placeholder="Ex: 0.25" step="0.01">
+                </div>
+            </div>
         </div>
 
         <div class="form-section" style="background:#e3f2fd;">
@@ -59,7 +77,7 @@
         <div class="form-section">
             <h2>৩. বাল্ক অ্যাড (Bulk Add)</h2>
             <p style="font-size:12px; color:#666; background:#fff; padding:5px; border:1px solid #ddd;">
-                Format: Question > Opt 1 > Opt 2 > Opt 3 > Opt 4 > Answer: Correct Answer > Explanation: Details (Optional) > (Empty Line)
+                Format: Question > Opt 1 > Opt 2 > Opt 3 > Opt 4 > Answer: Correct Answer > Explanation: Details > (Empty Line)
             </p>
             <textarea id="bulk-input-textarea" rows="6" placeholder="Paste here..."></textarea>
             <button id="process-bulk-btn" style="background:#673ab7;">বাল্ক প্রসেস</button>

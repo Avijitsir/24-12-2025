@@ -25,11 +25,7 @@ let isPaused = false;
 let filteredIndices = [];
 
 // Quiz Settings (Defaults)
-let quizSettings = {
-    passMark: 30,
-    posMark: 1,
-    negMark: 0.33
-};
+let quizSettings = { passMark: 30, posMark: 1, negMark: 0.33 };
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -76,18 +72,15 @@ function loadQuizFromFirebase(quizId) {
         const data = snapshot.val();
         
         if (data && data.questions) {
-            // Load Settings
             if(data.title) document.getElementById('instTitle').innerText = data.title;
             if(data.duration) timeLeft = parseInt(data.duration) * 60;
             if(data.passMark) quizSettings.passMark = parseFloat(data.passMark);
             if(data.posMark) quizSettings.posMark = parseFloat(data.posMark);
             if(data.negMark) quizSettings.negMark = parseFloat(data.negMark);
 
-            // Update UI Marks
             document.getElementById('dispPosMark').innerText = "+" + quizSettings.posMark;
             document.getElementById('dispNegMark').innerText = "-" + quizSettings.negMark;
 
-            // Process Questions
             const processedQuestions = data.questions.map(q => {
                 let correctIdx = q.options.indexOf(q.answer);
                 if (correctIdx === -1) correctIdx = 0; 
@@ -105,29 +98,22 @@ function loadQuizFromFirebase(quizId) {
             status = new Array(questions.length).fill(0); 
             userAnswers = new Array(questions.length).fill(null); 
             
-            // Update Instructions
-            const t = translations['en']; // Default load English
             const instHTML = `
                 <div style="font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.6;">
                     <h3 style="margin-top:0;">Please read the instructions carefully:</h3>
-                    
                     <p>1. <strong>Total Duration:</strong> ${data.duration || 90} Minutes.</p>
                     <p>2. <strong>Marking Scheme:</strong> +${quizSettings.posMark} for Correct, -${quizSettings.negMark} for Wrong.</p>
                     <p>3. <strong>Pass Mark:</strong> ${quizSettings.passMark}.</p>
-                    <p>4. The Question Palette displayed on the right side of screen will show the status of each question.</p>
+                    <p>4. Use the Palette to navigate.</p>
                     <ul class="legend-list" style="list-style: none; padding-left: 0;">
                         <li><span class="dot-icon not-visited"></span> Not Visited</li>
                         <li><span class="dot-icon not-answered"></span> Not Answered</li>
                         <li><span class="dot-icon answered"></span> Answered</li>
                         <li><span class="dot-icon marked"></span> Marked for Review</li>
-                        <li><span class="dot-icon marked-ans"></span> Answered & Marked for Review (Evaluated)</li>
                     </ul>
-                    <p>5. Click <strong>Save & Next</strong> to save answer. Click <strong>Final Submit</strong> on last question to end test.</p>
                 </div>`;
-            
-            translations.en.content = instHTML; // Simple override for now
+            translations.en.content = instHTML;
             updateInstructions('en');
-            
         } else {
             alert("Quiz not found.");
         }
@@ -139,7 +125,7 @@ const translations = {
     en: {
         title: "General Instructions",
         choose: "Choose Language: ",
-        content: "Loading...", // Overwritten dynamically
+        content: "Loading...",
         declaration: "I have read and understood the instructions.",
         btn: "I am ready to begin"
     },
@@ -148,18 +134,10 @@ const translations = {
         choose: "ভাষা নির্বাচন করুন: ",
         content: `
             <div style="font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.6;">
-                <h3 style="margin-top:0;">অনুগ্রহ করে নির্দেশাবলী পড়ুন:</h3>
+                <h3 style="margin-top:0;">নির্দেশাবলী:</h3>
                 <p>১. <strong>সময়সীমা:</strong> অ্যাডমিন নির্ধারিত।</p>
-                <p>২. <strong>নম্বর বিভাজন:</strong> সঠিক উত্তরের জন্য নম্বর এবং ভুল উত্তরের জন্য নেগেটিভ মার্কিং প্রযোজ্য।</p>
-                <p>৩. ডানদিকের প্যালেটে প্রশ্নের অবস্থা দেখা যাবে।</p>
-                <ul class="legend-list" style="list-style: none; padding-left: 0;">
-                    <li><span class="dot-icon not-visited"></span> প্রশ্ন দেখা হয়নি</li>
-                    <li><span class="dot-icon not-answered"></span> উত্তর দেওয়া হয়নি</li>
-                    <li><span class="dot-icon answered"></span> উত্তর দেওয়া হয়েছে</li>
-                    <li><span class="dot-icon marked"></span> রিভিউয়ের জন্য চিহ্নিত</li>
-                    <li><span class="dot-icon marked-ans"></span> উত্তর দেওয়া ও রিভিউয়ের জন্য চিহ্নিত (মূল্যায়ন হবে)</li>
-                </ul>
-                <p>৪. উত্তর সেভ করতে <strong>Save & Next</strong> এ ক্লিক করুন।</p>
+                <p>২. <strong>নম্বর:</strong> সঠিক উত্তরে পজিটিভ এবং ভুল উত্তরে নেগেটিভ মার্কিং।</p>
+                <p>৩. ডানদিকের প্যালেট ব্যবহার করে প্রশ্নে যাওয়া যাবে।</p>
             </div>
         `,
         declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি।",
@@ -182,24 +160,16 @@ document.getElementById('startTestBtn').addEventListener('click', () => {
     document.getElementById('instructionScreen').style.display = 'none';
     document.getElementById('quizMainArea').style.display = 'block';
     
-    // Fullscreen
-    if(document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-    } else if(document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
-    }
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    else if(document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
 
     loadQuestion(0);
     startTimer();
 });
 
-// Fullscreen Warning
 document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-        document.getElementById('fullscreenOverlay').style.display = 'flex';
-    } else {
-        document.getElementById('fullscreenOverlay').style.display = 'none';
-    }
+    if (!document.fullscreenElement) document.getElementById('fullscreenOverlay').style.display = 'flex';
+    else document.getElementById('fullscreenOverlay').style.display = 'none';
 });
 document.getElementById('returnFsBtn').addEventListener('click', () => {
     if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
@@ -214,7 +184,7 @@ function loadQuestion(index) {
     currentIdx = index;
     document.getElementById('currentQNum').innerText = index + 1;
     const q = questions[index];
-    document.getElementById('questionTextBox').innerText = currentLang === 'bn' ? q.question_bn : q.question_en;
+    document.getElementById('questionTextBox').innerHTML = currentLang === 'bn' ? q.question_bn : q.question_en; // Use innerHTML for MathJax
     const opts = currentLang === 'bn' ? q.options_bn : q.options_en;
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
@@ -232,10 +202,16 @@ function loadQuestion(index) {
         const row = document.createElement('div');
         row.className = 'option-row';
         if(userAnswers[index] === i) row.classList.add('selected');
+        // Use innerHTML for Options to support MathJax
         row.innerHTML = `<div class="radio-circle"></div><div class="opt-text">${opt}</div>`;
         row.onclick = () => { if(isPaused) return; document.querySelectorAll('.option-row').forEach(r => r.classList.remove('selected')); row.classList.add('selected'); };
         container.appendChild(row);
     });
+
+    // RENDER MATH FORMULAS
+    if(window.MathJax) {
+        MathJax.typesetPromise();
+    }
 }
 function getSelIdx() { const s = document.querySelector('.option-row.selected'); return s ? Array.from(s.parentNode.children).indexOf(s) : null; }
 document.getElementById('markReviewBtn').addEventListener('click', () => { if(isPaused) return; const i = getSelIdx(); if(i!==null){ userAnswers[currentIdx]=i; status[currentIdx]=4; } else status[currentIdx]=3; nextQ(); });
@@ -246,9 +222,7 @@ document.getElementById('saveNextBtn').addEventListener('click', () => {
     if(i!==null){ userAnswers[currentIdx]=i; status[currentIdx]=2; } else status[currentIdx]=1; 
     
     if (currentIdx === questions.length - 1) {
-        if (confirm("আপনি কি নিশ্চিত যে আপনি পরীক্ষা শেষ করতে চান?")) {
-            submitTest();
-        }
+        if (confirm("আপনি কি নিশ্চিত যে আপনি পরীক্ষা শেষ করতে চান?")) submitTest();
     } else {
         nextQ(); 
     }
@@ -286,7 +260,6 @@ function startTimer() {
     clearInterval(timerInterval);
     let m = parseInt(timeLeft / 60), s = parseInt(timeLeft % 60);
     document.getElementById('timerDisplay').innerText = `${m}:${s<10?'0'+s:s}`;
-    
     timerInterval = setInterval(() => {
         if(timeLeft <= 0) { clearInterval(timerInterval); submitTest(); return; }
         timeLeft--;
@@ -316,13 +289,8 @@ function submitTest() {
     let s=0, c=0, w=0, sk=0;
     questions.forEach((q, i) => { 
         if(userAnswers[i]!==null) { 
-            if(userAnswers[i]===q.correctIndex) {
-                s += quizSettings.posMark; 
-                c++;
-            } else {
-                s -= quizSettings.negMark; 
-                w++;
-            } 
+            if(userAnswers[i]===q.correctIndex) { s += quizSettings.posMark; c++; } 
+            else { s -= quizSettings.negMark; w++; } 
         } else sk++; 
     });
 
@@ -331,15 +299,11 @@ function submitTest() {
     
     if (s >= quizSettings.passMark) {
         passBox.innerHTML = `🎉 অভিনন্দন! আপনি পাস করেছেন।`;
-        passBox.style.background = "#d4edda";
-        passBox.style.color = "#155724";
-        passBox.style.border = "1px solid #c3e6cb";
+        passBox.style.background = "#d4edda"; passBox.style.color = "#155724"; passBox.style.border = "1px solid #c3e6cb";
     } else {
         const needed = (quizSettings.passMark - s).toFixed(2);
         passBox.innerHTML = `😞 দুঃখিত! আপনি ফেল করেছেন।<br><span style="font-size:13px; font-weight:normal;">পাস করার জন্য আরও <strong>${needed}</strong> নম্বর প্রয়োজন ছিল।</span>`;
-        passBox.style.background = "#f8d7da";
-        passBox.style.color = "#721c24";
-        passBox.style.border = "1px solid #f5c6cb";
+        passBox.style.background = "#f8d7da"; passBox.style.color = "#721c24"; passBox.style.border = "1px solid #f5c6cb";
     }
 
     document.getElementById('resScore').innerText = score;
@@ -391,7 +355,8 @@ function loadResultQuestion(realIdx) {
     else if(u===c) { b.innerText="Correct"; b.style.background="#26a745"; b.style.color="white"; }
     else { b.innerText="Wrong"; b.style.background="#dc3545"; b.style.color="white"; }
     
-    document.getElementById('resQuestionText').innerText = currentLang==='bn'?q.question_bn:q.question_en;
+    // Use innerHTML for MathJax support in result view
+    document.getElementById('resQuestionText').innerHTML = currentLang==='bn'?q.question_bn:q.question_en;
     const opts = currentLang==='bn'?q.options_bn:q.options_en;
     const con = document.getElementById('resOptionsContainer'); con.innerHTML = '';
     opts.forEach((o, i) => {
@@ -401,14 +366,18 @@ function loadResultQuestion(realIdx) {
         con.innerHTML += `<div class="${cls}"><div class="res-circle"></div><div class="res-opt-text">${o}</div></div>`;
     });
     
-    // Show Explanation
     const explBox = document.getElementById('resExplanation');
     const explText = document.getElementById('resExplText');
     if(q.explanation && q.explanation.trim() !== "") {
         explBox.style.display = "block";
-        explText.innerText = q.explanation;
+        explText.innerHTML = q.explanation; // Support MathJax in explanation
     } else {
         explBox.style.display = "none";
+    }
+
+    // RENDER MATH FORMULAS IN RESULT
+    if(window.MathJax) {
+        MathJax.typesetPromise();
     }
 
     document.getElementById('resPrevBtn').onclick = () => { if(nIdx > 0) loadResultQuestion(filteredIndices[nIdx - 1]); };

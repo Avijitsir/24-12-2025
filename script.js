@@ -10,7 +10,6 @@ const questionsSource = [
 ];
 
 // --- Firebase Config ---
-// আপনার ফায়ারবেস কনফিগারেশন ঠিক আছে, এটি পরিবর্তন করার দরকার নেই
 const firebaseConfig = {
     apiKey: "AIzaSyDwGzTPmFg-gjoYtNWNJM47p22NfBugYFA",
     authDomain: "mock-test-1eea6.firebaseapp.com",
@@ -69,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const quizId = urlParams.get('id');
 
     if (quizId) {
-        document.getElementById('instContent').innerHTML = "Loading Quiz...";
+        document.getElementById('instContent').innerHTML = "<div style='text-align:center; padding:20px;'>Loading Quiz Details... Please wait.</div>";
         loadQuizFromFirebase(quizId);
     } else {
         alert("URL Error: No Quiz ID found.");
@@ -96,7 +95,7 @@ function loadQuizFromFirebase(quizId) {
             initQuestions(processedQuestions);
             
             if(data.title) {
-                document.getElementById('instTitle').innerText = data.title + " - Instructions";
+                document.getElementById('instTitle').innerText = data.title;
             }
             if(data.duration) {
                 timeLeft = parseInt(data.duration) * 60;
@@ -112,47 +111,82 @@ function loadQuizFromFirebase(quizId) {
     });
 }
 
-// --- Instructions (Updated with Full Details) ---
+// --- Instructions (IMPROVED & PROFESSIONAL) ---
 const translations = {
     en: {
-        title: "Instructions",
+        title: "General Instructions",
         choose: "Language: ",
         content: `
-            <h3 style="margin-top:0;">Please read the following instructions carefully:</h3>
-            <p>1. The examination will comprise of Objective Type Multiple Choice Questions (MCQs).</p>
-            <p>2. Each question has 4 options, out of which only one is correct.</p>
-            <p>3. <strong>Marks:</strong> Each correct answer carries <strong>+1 mark</strong>.</p>
-            <p>4. <strong>Negative Marking:</strong> There will be a deduction of <strong>0.33 marks</strong> for every wrong answer.</p>
-            <p>5. No marks will be deducted for unattempted questions.</p>
-            <p>6. The total duration of the examination is specified by the admin.</p>
-            <p>7. The clock has been set at the server and the countdown timer at the top right corner of your screen will display the time remaining.</p>
-            <p>8. Click on <strong>'Save & Next'</strong> to save your answer and move to the next question.</p>
-            <p>9. Click on <strong>'Mark for Review'</strong> if you want to review the question later.</p>
-            <p>10. The exam will be auto-submitted when the timer reaches zero.</p>
-            <br>
-            <p style="text-align:center; font-weight:bold;">All the Best!</p>
+            <div style="font-family: 'Roboto', sans-serif; line-height: 1.8;">
+                <h3 style="color:#00b5e2; margin-top:0;">Please read the instructions carefully</h3>
+                
+                <p><strong>1. General:</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>Total duration of the examination is decided by the admin.</li>
+                    <li>The clock will be set at the server. The countdown timer in the top right corner of screen will display the remaining time available for you to complete the examination.</li>
+                    <li>When the timer reaches zero, the examination will end by itself. You will not be required to end or submit your examination.</li>
+                </ul>
+
+                <p><strong>2. Marking Scheme:</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>Each Question carries <strong>+1 Mark</strong>.</li>
+                    <li>For every wrong answer, <strong style="color:red;">0.33 Marks</strong> will be deducted.</li>
+                    <li>No marks will be deducted for unattempted questions.</li>
+                </ul>
+
+                <p><strong>3. Answering a Question:</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>To select your answer, click on the button of one of the options.</li>
+                    <li>To deselect your chosen answer, click on the button of the chosen option again or click on the <strong>Clear Response</strong> button.</li>
+                    <li>To save your answer, you MUST click on the <strong>Save & Next</strong> button.</li>
+                    <li>To mark the question for review, click on the <strong>Mark for Review & Next</strong> button.</li>
+                </ul>
+
+                <br>
+                <div style="background:#e3f2fd; padding:10px; border-radius:5px; text-align:center; font-weight:bold; color:#0d47a1;">
+                    Best of Luck for your Exam!
+                </div>
+            </div>
         `,
-        declaration: "I have read and understood the instructions.",
+        declaration: "I have read and understood the instructions. I agree that in case of not adhering to the instructions, I shall be liable to be debarred from this Test.",
         btn: "I am ready to begin"
     },
     bn: {
-        title: "নির্দেশাবলী",
+        title: "সাধারণ নির্দেশাবলী",
         choose: "ভাষা: ",
         content: `
-            <h3 style="margin-top:0;">অনুগ্রহ করে নির্দেশাবলী মনোযোগ সহকারে পড়ুন:</h3>
-            <p>১. এই পরীক্ষায় অবজেক্টিভ টাইপ মাল্টিপল চয়েস প্রশ্ন (MCQ) থাকবে।</p>
-            <p>২. প্রতিটি প্রশ্নে ৪টি বিকল্প থাকবে, যার মধ্যে মাত্র একটি সঠিক।</p>
-            <p>৩. <strong>নম্বর:</strong> প্রতিটি সঠিক উত্তরের জন্য <strong>+১ নম্বর</strong> দেওয়া হবে।</p>
-            <p>৪. <strong>নেগেটিভ মার্কিং:</strong> প্রতিটি ভুল উত্তরের জন্য <strong>০.৩৩ নম্বর</strong> কাটা যাবে।</p>
-            <p>৫. কোনো প্রশ্নের উত্তর না দিলে কোনো নম্বর কাটা যাবে না।</p>
-            <p>৬. পরীক্ষার মোট সময়সীমা নির্দিষ্ট করা আছে এবং স্ক্রিনের উপরে টাইমার দেখা যাবে।</p>
-            <p>৭. উত্তর সেভ করতে এবং পরবর্তী প্রশ্নে যেতে <strong>'Save & Next'</strong> এ ক্লিক করুন।</p>
-            <p>৮. আপনি যদি কোনো প্রশ্ন পরে রিভিউ করতে চান তবে <strong>'Mark for Review'</strong> ব্যবহার করতে পারেন।</p>
-            <p>৯. টাইমার শূন্যে পৌঁছালে পরীক্ষাটি স্বয়ংক্রিয়ভাবে জমা (Submit) হয়ে যাবে।</p>
-            <br>
-            <p style="text-align:center; font-weight:bold;">শুভকামনা!</p>
+            <div style="font-family: 'Roboto', sans-serif; line-height: 1.8;">
+                <h3 style="color:#00b5e2; margin-top:0;">অনুগ্রহ করে নির্দেশাবলী মনোযোগ সহকারে পড়ুন</h3>
+                
+                <p><strong>১. সাধারণ নিয়মাবলী:</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>পরীক্ষার মোট সময়কাল অ্যাডমিন দ্বারা নির্ধারিত।</li>
+                    <li>সার্ভারে ঘড়ি সেট করা হয়েছে। স্ক্রিনের উপরের ডানদিকের কোণে কাউন্টডাউন টাইমারটি পরীক্ষার জন্য অবশিষ্ট সময় প্রদর্শন করবে।</li>
+                    <li>টাইমার শূন্যে পৌঁছালে, পরীক্ষাটি স্বয়ংক্রিয়ভাবে শেষ হয়ে যাবে। আপনাকে আলাদাভাবে সাবমিট করতে হবে না।</li>
+                </ul>
+
+                <p><strong>২. মার্কিং স্কিম (Marking Scheme):</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>প্রতিটি সঠিক উত্তরের জন্য <strong>+১ নম্বর</strong> দেওয়া হবে।</li>
+                    <li>প্রতিটি ভুল উত্তরের জন্য <strong style="color:red;">০.৩৩ নম্বর</strong> কাটা যাবে (Negative Marking)।</li>
+                    <li>যেসব প্রশ্নের উত্তর দেওয়া হবে না, সেগুলোর জন্য কোনো নম্বর কাটা যাবে না।</li>
+                </ul>
+
+                <p><strong>৩. উত্তর প্রদানের নিয়ম:</strong></p>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+                    <li>আপনার উত্তর নির্বাচন করতে অপশনগুলোর মধ্যে একটিতে ক্লিক করুন।</li>
+                    <li>নির্বাচিত উত্তর মুছে ফেলতে <strong>Clear Response</strong> বাটনে ক্লিক করুন।</li>
+                    <li>উত্তর সেভ করতে এবং পরের প্রশ্নে যেতে অবশ্যই <strong>Save & Next</strong> বাটনে ক্লিক করুন।</li>
+                    <li>প্রশ্নটি পরে দেখার জন্য চিহ্নিত করতে চাইলে <strong>Mark for Review & Next</strong> এ ক্লিক করুন।</li>
+                </ul>
+
+                <br>
+                <div style="background:#e3f2fd; padding:10px; border-radius:5px; text-align:center; font-weight:bold; color:#0d47a1;">
+                    আপনার পরীক্ষার জন্য শুভকামনা!
+                </div>
+            </div>
         `,
-        declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি।",
+        declaration: "আমি নির্দেশাবলী পড়েছি এবং বুঝেছি। আমি রাজি আছি যে নির্দেশাবলী না মানলে আমাকে এই পরীক্ষা থেকে বিরত রাখা হতে পারে।",
         btn: "আমি শুরু করতে প্রস্তুত"
     }
 };
@@ -160,8 +194,12 @@ const translations = {
 const langSelector = document.getElementById('langSelector');
 function updateInstructions(lang) {
     const t = translations[lang];
+    // Keep dynamic title logic
     const currentTitle = document.getElementById('instTitle').innerText;
-    if(currentTitle.includes("General") || currentTitle.includes("Instructions")) document.getElementById('instTitle').innerText = t.title;
+    // Only update title if it's the generic one, otherwise keep quiz title
+    if(currentTitle.includes("General") || currentTitle.includes("Instructions") || currentTitle.includes("সাধারণ")) {
+        // do nothing or generic text
+    } 
     
     document.getElementById('lblChooseLang').innerText = t.choose;
     document.getElementById('instContent').innerHTML = t.content;

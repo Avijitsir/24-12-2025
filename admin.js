@@ -17,6 +17,10 @@ const database = firebase.database();
 const qIdIn = document.getElementById('quiz-id-input');
 const qTitIn = document.getElementById('quiz-title-input');
 const qTimeIn = document.getElementById('quiz-duration');
+const qPassIn = document.getElementById('quiz-pass-mark'); // New
+const qPosIn = document.getElementById('quiz-pos-mark');   // New
+const qNegIn = document.getElementById('quiz-neg-mark');   // New
+
 const loadQuizBtn = document.getElementById('load-quiz-btn');
 const subjectSelect = document.getElementById('question-subject-select');
 
@@ -26,7 +30,7 @@ const o2 = document.getElementById('option2-input');
 const o3 = document.getElementById('option3-input');
 const o4 = document.getElementById('option4-input');
 const cOpt = document.getElementById('correct-option-select');
-const explIn = document.getElementById('explanation-input'); // NEW
+const explIn = document.getElementById('explanation-input');
 
 const addBtn = document.getElementById('add-question-btn');
 const updBtn = document.getElementById('update-question-btn');
@@ -55,7 +59,7 @@ function getForm() {
     const q = qText.value.trim();
     const ops = [o1.value.trim(), o2.value.trim(), o3.value.trim(), o4.value.trim()];
     const c = cOpt.value;
-    const ex = explIn.value.trim(); // Get Explanation
+    const ex = explIn.value.trim();
 
     if(!q || ops.some(o=>!o) || !c) { show("সব তথ্য দিন!", "error"); return null; }
     
@@ -74,7 +78,7 @@ function editQ(i) {
     o1.value = q.options[0]; o2.value = q.options[1];
     o3.value = q.options[2]; o4.value = q.options[3];
     cOpt.value = q.options.indexOf(q.answer);
-    explIn.value = q.explanation || ""; // Set Explanation
+    explIn.value = q.explanation || "";
     
     editIdx = i;
     addBtn.style.display='none'; updBtn.style.display='block';
@@ -110,7 +114,7 @@ function procBulk() {
             const qt = lines[0];
             const ops = [lines[1], lines[2], lines[3], lines[4]];
             const ansLine = lines.find(l => l.toLowerCase().startsWith("answer:"));
-            const explLine = lines.find(l => l.toLowerCase().startsWith("explanation:")); // Check for Explanation
+            const explLine = lines.find(l => l.toLowerCase().startsWith("explanation:"));
             
             if(ansLine) {
                 const ans = ansLine.replace(/^answer:\s*/i, "").trim();
@@ -125,7 +129,7 @@ function procBulk() {
         }
     });
 
-    if(count>0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন (${sub}) যোগ হয়েছে`, "success"); }
+    if(count>0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন যোগ হয়েছে`, "success"); }
     else show("ফরম্যাট সঠিক নয়", "error");
 }
 
@@ -157,6 +161,10 @@ function saveFirebase() {
     const id = qIdIn.value.trim();
     const title = qTitIn.value.trim();
     const dur = qTimeIn.value.trim();
+    // New Settings
+    const pass = qPassIn.value.trim() || 30; // Default 30
+    const pos = qPosIn.value.trim() || 1;    // Default 1
+    const neg = qNegIn.value.trim() || 0.33; // Default 0.33
 
     if(!id || !title || !dur || questions.length===0) { 
         show("ID, Title, সময় এবং প্রশ্ন দিন", "error"); return; 
@@ -167,6 +175,9 @@ function saveFirebase() {
     database.ref('quizzes/'+id).set({
         title: title,
         duration: dur,
+        passMark: pass,
+        posMark: pos,
+        negMark: neg,
         questions: questions
     }).then(() => {
         show("সফল! কুইজ সেভ হয়েছে।", "success");
@@ -195,6 +206,10 @@ function loadFirebase() {
         if(d) {
             qTitIn.value = d.title;
             if(d.duration) qTimeIn.value = d.duration;
+            if(d.passMark) qPassIn.value = d.passMark;
+            if(d.posMark) qPosIn.value = d.posMark;
+            if(d.negMark) qNegIn.value = d.negMark;
+            
             questions = d.questions || [];
             render();
             show("লোড হয়েছে", "success");

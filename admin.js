@@ -14,8 +14,9 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Elements
-const quizIdInput = document.getElementById('quiz-id-input');
-const quizTitleInput = document.getElementById('quiz-title-input');
+const qIdIn = document.getElementById('quiz-id-input');
+const qTitIn = document.getElementById('quiz-title-input');
+const qTimeIn = document.getElementById('quiz-duration'); // New Time Input
 const loadQuizBtn = document.getElementById('load-quiz-btn');
 const subjectSelect = document.getElementById('question-subject-select');
 
@@ -25,7 +26,6 @@ const o2 = document.getElementById('option2-input');
 const o3 = document.getElementById('option3-input');
 const o4 = document.getElementById('option4-input');
 const cOpt = document.getElementById('correct-option-select');
-const explInput = document.getElementById('explanation-input'); // New
 
 const addBtn = document.getElementById('add-question-btn');
 const updBtn = document.getElementById('update-question-btn');
@@ -54,11 +54,10 @@ function getForm() {
     const q = qText.value.trim();
     const ops = [o1.value.trim(), o2.value.trim(), o3.value.trim(), o4.value.trim()];
     const c = cOpt.value;
-    const ex = explInput.value.trim();
 
     if(!q || ops.some(o=>!o) || !c) { show("সব তথ্য দিন!", "error"); return null; }
     
-    return { subject: s, question: q, options: ops, answer: ops[parseInt(c)], explanation: ex };
+    return { subject: s, question: q, options: ops, answer: ops[parseInt(c)] };
 }
 
 function addQ() {
@@ -73,7 +72,6 @@ function editQ(i) {
     o1.value = q.options[0]; o2.value = q.options[1];
     o3.value = q.options[2]; o4.value = q.options[3];
     cOpt.value = q.options.indexOf(q.answer);
-    explInput.value = q.explanation || ""; // Load explanation
     
     editIdx = i;
     addBtn.style.display='none'; updBtn.style.display='block';
@@ -92,52 +90,36 @@ function updQ() {
 function delQ(i) { if(confirm("মুছে ফেলবেন?")) { questions.splice(i, 1); render(); } }
 
 function clear() {
-    qText.value=''; o1.value=''; o2.value=''; o3.value=''; o4.value=''; cOpt.value=''; explInput.value='';
+    qText.value=''; o1.value=''; o2.value=''; o3.value=''; o4.value=''; cOpt.value='';
 }
 
 function procBulk() {
     const txt = bulkText.value.trim();
     const sub = subjectSelect.value;
-    if(!txt) { show("বক্স খালি!", "error"); return; }
+    if(!txt) return;
 
     const blocks = txt.split(/\n\s*\n/);
     let count = 0;
 
-    blocks.forEach((b, idx) => {
+    blocks.forEach(b => {
         const lines = b.trim().split('\n').map(l=>l.trim()).filter(l=>l);
         if(lines.length >= 6) {
             const qt = lines[0];
             const ops = [lines[1], lines[2], lines[3], lines[4]];
+            const ansLine = lines.find(l => l.toLowerCase().startsWith("answer:"));
             
-            // Find Answer line
-            let ansLine = lines.find(l => /^(answer|ans|correct):/i.test(l));
-            // Find Explanation line
-            let expLine = lines.find(l => /^(explanation|exp|ব্যাখ্যা):/i.test(l));
-
             if(ansLine) {
-                let rawAns = ansLine.replace(/^(answer|ans|correct):\s*/i, "").trim();
-                let explanationText = expLine ? expLine.replace(/^(explanation|exp|ব্যাখ্যা):\s*/i, "").trim() : "";
-                let finalAns = null;
-
-                const exactMatch = ops.find(o => o.toLowerCase() === rawAns.toLowerCase());
-                if(exactMatch) finalAns = exactMatch;
-
-                if(!finalAns) {
-                    const optionMap = {'a':0, 'b':1, 'c':2, 'd':3, '1':0, '2':1, '3':2, '4':3};
-                    const key = rawAns.toLowerCase().replace(/[\.\)]/g, '');
-                    if(optionMap.hasOwnProperty(key)) finalAns = ops[optionMap[key]];
-                }
-
-                if(finalAns) {
-                    questions.push({ subject: sub, question: qt, options: ops, answer: finalAns, explanation: explanationText });
+                const ans = ansLine.replace(/^answer:\s*/i, "").trim();
+                if(ops.includes(ans)) {
+                    questions.push({ subject: sub, question: qt, options: ops, answer: ans });
                     count++;
                 }
             }
         }
     });
 
-    if(count > 0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন যোগ হয়েছে`, "success"); }
-    else { show("ফরম্যাট সঠিক নয়", "error"); }
+    if(count>0) { render(); bulkText.value=''; show(`${count} টি প্রশ্ন (${sub}) যোগ হয়েছে`, "success"); }
+    else show("ফরম্যাট সঠিক নয়", "error");
 }
 
 function render() {
@@ -148,9 +130,6 @@ function render() {
         div.className = 'q-card';
         let oh = '';
         q.options.forEach(o => oh += `<li ${o===q.answer?'class="correct"':''}>${o}</li>`);
-        // Show snippet of explanation if exists
-        let expHtml = q.explanation ? `<div style="font-size:12px; color:#666; margin-top:5px; border-top:1px dashed #ccc; padding-top:3px;">💡 ${q.explanation}</div>` : '';
-        
         div.innerHTML = `
             <div class="q-header">
                 <span class="subject-tag">${q.subject}</span>
@@ -161,36 +140,34 @@ function render() {
             </div>
             <span class="q-text">Q${i+1}. ${q.question}</span>
             <ul class="q-options">${oh}</ul>
-            ${expHtml}
         `;
         qContainer.appendChild(div);
     });
-    
-    // Math Render call if needed
-    if (window.renderMathInElement) {
-        renderMathInElement(qContainer, {
-            delimiters: [
-                {left: "$$", right: "$$", display: true},
-                {left: "\\(", right: "\\)", display: false}
-            ],
-            throwOnError: false
-        });
-    }
 }
 
 function saveFirebase() {
-    const id = quizIdInput.value.trim();
-    const title = quizTitleInput.value.trim();
-    if(!id || !title || questions.length===0) { show("ID, Title এবং প্রশ্ন দিন", "error"); return; }
+    const id = qIdIn.value.trim();
+    const title = qTitIn.value.trim();
+    const dur = qTimeIn.value.trim(); // Get duration
+
+    if(!id || !title || !dur || questions.length===0) { 
+        show("ID, Title, সময় এবং প্রশ্ন দিন", "error"); return; 
+    }
 
     show("সেভ হচ্ছে...", "success");
-    database.ref('quizzes/'+id).set({ title: title, questions: questions })
-        .then(() => { show("সফল!", "success"); genLink(id); })
-        .catch(e => show("Error: "+e.message, "error"));
+    
+    database.ref('quizzes/'+id).set({
+        title: title,
+        duration: dur, // Save duration
+        questions: questions
+    }).then(() => {
+        show("সফল! কুইজ সেভ হয়েছে।", "success");
+        genLink(id);
+    }).catch(e => show("Error: "+e.message, "error"));
 }
 
 function genLink(id) {
-    const url = window.location.href.replace('admin.html', 'index.html').split('?')[0] + '?quiz=' + id;
+    const url = window.location.href.replace('admin.html', 'index.html').split('?')[0] + '?id=' + id;
     linkInput.value = url;
     linkBox.style.display = 'block';
     linkBox.scrollIntoView({behavior:"smooth"});
@@ -201,22 +178,27 @@ function copyToClipboard() {
 }
 
 function loadFirebase() {
-    const id = quizIdInput.value.trim();
+    const id = qIdIn.value.trim();
     if(!id) { show("ID দিন", "error"); return; }
+    
     linkBox.style.display='none';
     database.ref('quizzes/'+id).once('value').then(s => {
         const d = s.val();
-        if(d) { 
-            quizTitleInput.value=d.title; 
-            questions=d.questions||[]; 
-            render(); 
-            show("লোড হয়েছে", "success"); 
+        if(d) {
+            qTitIn.value = d.title;
+            if(d.duration) qTimeIn.value = d.duration; // Load duration
+            questions = d.questions || [];
+            render();
+            show("লোড হয়েছে", "success");
+        } else {
+            show("পাওয়া যায়নি", "error");
         }
-        else show("পাওয়া যায়নি", "error");
     });
 }
 
 function show(m, t) {
-    statusMsg.innerText = m; statusMsg.className = t; statusMsg.style.display='block';
-    setTimeout(()=>statusMsg.style.display='none', 4000);
+    statusMsg.innerText = m;
+    statusMsg.className = t;
+    statusMsg.style.display = 'block';
+    setTimeout(()=>statusMsg.style.display='none', 3000);
 }
